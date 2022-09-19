@@ -7,7 +7,7 @@ use App\Enums\Directions;
 use App\Managers\CubeManager;
 use App\Models\Cube;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Cube as CubeResourse;
+use App\Http\Resources\Cube as CubeResource;
 
 class CubeController
 {
@@ -20,7 +20,7 @@ class CubeController
      */
     public function create(): JsonResource
     {
-        return new CubeResourse($this->cubeManager->create());
+        return new CubeResource($this->cubeManager->create());
     }
 
     /**
@@ -29,7 +29,7 @@ class CubeController
      */
     public function get(Cube $cube): JsonResource
     {
-        return new CubeResourse($cube);
+        return new CubeResource($cube);
     }
 
     /**
@@ -38,7 +38,7 @@ class CubeController
      */
     public function init(Cube $cube): JsonResource
     {
-        return new CubeResourse($this->cubeManager->init($cube));
+        return new CubeResource($this->cubeManager->init($cube));
     }
 
     /**
@@ -47,7 +47,7 @@ class CubeController
      */
     public function shuffle(Cube $cube): JsonResource
     {
-        return new CubeResourse($this->cubeManager->shuffle($cube));
+        return new CubeResource($this->cubeManager->shuffle($cube));
     }
 
     /**
@@ -58,6 +58,6 @@ class CubeController
      */
     public function rotate(Cube $cube, Faces $face, Directions $direction): JsonResource
     {
-        return new CubeResourse($this->cubeManager->rotate($cube, $face, $direction));
+        return new CubeResource($this->cubeManager->rotate($cube, $face, $direction));
     }
 }
