@@ -1,34 +1,45 @@
 <?php
 
-namespace App\Processor;
+namespace App\Processors;
 
+use App\Enums\Colors;
+use App\Enums\Faces;
+use App\Enums\Directions;
 use App\Exceptions\NullCubeStateException;
 use App\Models\Cube;
 use Exception;
 
-class CubeProcessor
+class CubeProcessor implements CubeProcessorInterface
 {
-    public const DIRECTION_CW = 'cw';
-    public const DIRECTION_CCW = 'ccw';
+    /** @var array|null  */
+    private ?array $cubeState = null;
 
-    public function __construct(private ?array $cubeState)
+    /**
+     * @param array|null $cubeState
+     * @return void
+     */
+    public function setCubeState(?array $cubeState): void
     {
+        $this->cubeState = $cubeState;
     }
 
+    /**
+     * @return array
+     */
     public static function getDefaultState(): array
     {
         $state = [];
 
         $initialColors = [
-            Cube::FACE_FRONT => Cube::COLOR_BLUE,
-            Cube::FACE_RIGHT => Cube::COLOR_WHITE,
-            Cube::FACE_BACK => Cube::COLOR_RED,
-            Cube::FACE_LEFT => Cube::COLOR_ORANGE,
-            Cube::FACE_TOP => Cube::COLOR_GREEN,
-            Cube::FACE_BOTTOM => Cube::COLOR_YELLOW
+            Faces::FACE_FRONT => Colors::COLOR_BLUE,
+            Faces::FACE_RIGHT => Colors::COLOR_WHITE,
+            Faces::FACE_BACK => Colors::COLOR_RED,
+            Faces::FACE_LEFT => Colors::COLOR_ORANGE,
+            Faces::FACE_TOP => Colors::COLOR_GREEN,
+            Faces::FACE_BOTTOM => Colors::COLOR_YELLOW
         ];
 
-        foreach (Cube::FACES as $face) {
+        foreach (Faces::getValues() as $face) {
             for ($i = 0; $i < Cube::CUBE_SIZE; $i++) {
                 for ($j = 0; $j < Cube::CUBE_SIZE; $j++) {
                     $state[$face][$i][$j] = $initialColors[$face];
@@ -56,35 +67,36 @@ class CubeProcessor
     }
 
     /**
+     * @param int $times
      * @return void
      * @throws NullCubeStateException
      * @throws Exception
      */
-    public function shuffle(): void
+    public function shuffle(int $times = 20): void
     {
         if (null === $this->cubeState) {
             throw new NullCubeStateException('Cube state is empty. Must be initialized first.');
         }
 
-        for ($i = 0; $i < random_int(10, 20); $i++) {
-            $this->doRotateCW(Cube::FACES[random_int(0, 5)]);
+        for ($i = 0; $i < $times; $i++) {
+            $this->doRotateCW(Faces::getRandomValue());
         }
     }
 
     /**
-     * @param string $face
-     * @param string $direction
+     * @param Faces $face
+     * @param Directions $direction
      * @return void
      * @throws NullCubeStateException
      */
-    public function rotate(string $face, string $direction): void
+    public function rotate(Faces $face, Directions $direction): void
     {
         if (null === $this->cubeState) {
             throw new NullCubeStateException('Cube state is empty. Must be initialized first.');
         }
 
         $this->doRotateCW($face);
-        if ($direction === self::DIRECTION_CCW) {
+        if ($direction->is(Directions::DIRECTION_CCW)) {
             $this->doRotateCW($face);
             $this->doRotateCW($face);
         }
@@ -197,160 +209,160 @@ class CubeProcessor
     private function getNeighbors(string $face): array
     {
         $neighbors = [
-            Cube::FACE_FRONT => [
-                Cube::FACE_TOP => [
+            Faces::FACE_FRONT => [
+                Faces::FACE_TOP => [
                     'shift' => 'row',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => true,
-                    'next' => Cube::FACE_RIGHT
+                    'next' => Faces::FACE_RIGHT
                 ],
-                Cube::FACE_RIGHT => [
+                Faces::FACE_RIGHT => [
                     'shift' => 'column',
                     'index' => 0,
                     'direction' => true,
-                    'next' => Cube::FACE_BOTTOM
+                    'next' => Faces::FACE_BOTTOM
                 ],
-                Cube::FACE_BOTTOM => [
+                Faces::FACE_BOTTOM => [
                     'shift' => 'row',
                     'index' => 0,
                     'direction' => false,
-                    'next' => Cube::FACE_LEFT
+                    'next' => Faces::FACE_LEFT
                 ],
-                Cube::FACE_LEFT => [
+                Faces::FACE_LEFT => [
                     'shift' => 'column',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => false,
-                    'next' => Cube::FACE_TOP
+                    'next' => Faces::FACE_TOP
                 ],
             ],
-            Cube::FACE_BACK => [
-                Cube::FACE_TOP => [
+            Faces::FACE_BACK => [
+                Faces::FACE_TOP => [
                     'shift' => 'row',
                     'index' => 0,
                     'direction' => false,
-                    'next' => Cube::FACE_RIGHT
+                    'next' => Faces::FACE_RIGHT
                 ],
-                Cube::FACE_LEFT => [
+                Faces::FACE_LEFT => [
                     'shift' => 'column',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => true,
-                    'next' => Cube::FACE_TOP
+                    'next' => Faces::FACE_TOP
                 ],
-                Cube::FACE_BOTTOM => [
+                Faces::FACE_BOTTOM => [
                     'shift' => 'row',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => true,
-                    'next' => Cube::FACE_LEFT
+                    'next' => Faces::FACE_LEFT
                 ],
-                Cube::FACE_RIGHT => [
+                Faces::FACE_RIGHT => [
                     'shift' => 'column',
                     'index' => 0,
                     'direction' => false,
-                    'next' => Cube::FACE_BOTTOM
+                    'next' => Faces::FACE_BOTTOM
                 ],
             ],
-            Cube::FACE_LEFT => [
-                Cube::FACE_TOP => [
+            Faces::FACE_LEFT => [
+                Faces::FACE_TOP => [
                     'shift' => 'column',
                     'index' => 0,
                     'direction' => true,
-                    'next' => Cube::FACE_FRONT
+                    'next' => Faces::FACE_FRONT
                 ],
-                Cube::FACE_FRONT => [
+                Faces::FACE_FRONT => [
                     'shift' => 'column',
                     'index' => 0,
                     'direction' => true,
-                    'next' => Cube::FACE_BOTTOM
+                    'next' => Faces::FACE_BOTTOM
                 ],
-                Cube::FACE_BOTTOM => [
+                Faces::FACE_BOTTOM => [
                     'shift' => 'column',
                     'index' => 0,
                     'direction' => true,
-                    'next' => Cube::FACE_BACK
+                    'next' => Faces::FACE_BACK
                 ],
-                Cube::FACE_BACK => [
+                Faces::FACE_BACK => [
                     'shift' => 'column',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => false,
-                    'next' => Cube::FACE_TOP
+                    'next' => Faces::FACE_TOP
                 ],
             ],
-            Cube::FACE_RIGHT => [
-                Cube::FACE_TOP => [
+            Faces::FACE_RIGHT => [
+                Faces::FACE_TOP => [
                     'shift' => 'column',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => true,
-                    'next' => Cube::FACE_BACK
+                    'next' => Faces::FACE_BACK
                 ],
-                Cube::FACE_BACK => [
+                Faces::FACE_BACK => [
                     'shift' => 'column',
                     'index' => 0,
                     'direction' => false,
-                    'next' => Cube::FACE_BOTTOM
+                    'next' => Faces::FACE_BOTTOM
                 ],
-                Cube::FACE_BOTTOM => [
+                Faces::FACE_BOTTOM => [
                     'shift' => 'column',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => true,
-                    'next' => Cube::FACE_FRONT
+                    'next' => Faces::FACE_FRONT
                 ],
-                Cube::FACE_FRONT => [
+                Faces::FACE_FRONT => [
                     'shift' => 'column',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => true,
-                    'next' => Cube::FACE_TOP
+                    'next' => Faces::FACE_TOP
                 ],
             ],
-            Cube::FACE_TOP => [
-                Cube::FACE_FRONT => [
+            Faces::FACE_TOP => [
+                Faces::FACE_FRONT => [
                     'shift' => 'row',
                     'index' => 0,
                     'direction' => false,
-                    'next' => Cube::FACE_LEFT
+                    'next' => Faces::FACE_LEFT
                 ],
-                Cube::FACE_LEFT => [
+                Faces::FACE_LEFT => [
                     'shift' => 'row',
                     'index' => 0,
                     'direction' => false,
-                    'next' => Cube::FACE_BACK
+                    'next' => Faces::FACE_BACK
                 ],
-                Cube::FACE_BACK => [
+                Faces::FACE_BACK => [
                     'shift' => 'row',
                     'index' => 0,
                     'direction' => false,
-                    'next' => Cube::FACE_RIGHT
+                    'next' => Faces::FACE_RIGHT
                 ],
-                Cube::FACE_RIGHT => [
+                Faces::FACE_RIGHT => [
                     'shift' => 'row',
                     'index' => 0,
                     'direction' => false,
-                    'next' => Cube::FACE_FRONT
+                    'next' => Faces::FACE_FRONT
                 ],
             ],
-            Cube::FACE_BOTTOM => [
-                Cube::FACE_FRONT => [
+            Faces::FACE_BOTTOM => [
+                Faces::FACE_FRONT => [
                     'shift' => 'row',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => true,
-                    'next' => Cube::FACE_LEFT
+                    'next' => Faces::FACE_LEFT
                 ],
-                Cube::FACE_RIGHT => [
+                Faces::FACE_RIGHT => [
                     'shift' => 'row',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => true,
-                    'next' => Cube::FACE_FRONT
+                    'next' => Faces::FACE_FRONT
                 ],
-                Cube::FACE_BACK => [
+                Faces::FACE_BACK => [
                     'shift' => 'row',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => true,
-                    'next' => Cube::FACE_RIGHT
+                    'next' => Faces::FACE_RIGHT
                 ],
-                Cube::FACE_LEFT => [
+                Faces::FACE_LEFT => [
                     'shift' => 'row',
                     'index' => Cube::CUBE_SIZE - 1,
                     'direction' => true,
-                    'next' => Cube::FACE_BACK
+                    'next' => Faces::FACE_BACK
                 ],
             ],
         ];

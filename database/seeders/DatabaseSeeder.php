@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\Cube;
 use Illuminate\Database\Seeder;
 
@@ -15,5 +14,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+         Cube::factory(1)->create();
     }
 }

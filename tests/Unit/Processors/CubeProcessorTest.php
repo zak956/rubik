@@ -1,12 +1,16 @@
 <?php
 
-namespace Tests\Unit\Processor;
+namespace Tests\Unit\Processors;
 
+use App\Enums\Faces;
+use App\Enums\Directions;
 use App\Exceptions\NullCubeStateException;
-use App\Models\Cube;
-use App\Processor\CubeProcessor;
+use App\Processors\CubeProcessor;
 use Tests\TestCase;
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class CubeProcessorTest extends TestCase
 {
     /**
@@ -16,22 +20,22 @@ class CubeProcessorTest extends TestCase
      */
     public function testInit($expected): void
     {
-        $p = new CubeProcessor(null);
+        $p = new CubeProcessor();
         $p->init();
         self::assertEquals($expected, $p->getCubeState());
     }
 
     /**
-     * @param $face
-     * @param $direction
-     * @param $expected
+     * @param Faces $face
+     * @param Directions $direction
+     * @param array $expected
      * @return void
-     * @dataProvider getDataForRotate
      * @throws NullCubeStateException
+     * @dataProvider getDataForRotate
      */
-    public function testRotate($face, $direction, $expected): void
+    public function testRotate(Faces $face, Directions $direction, array $expected): void
     {
-        $p = new CubeProcessor(null);
+        $p = new CubeProcessor();
         $p->init();
         $p->rotate($face, $direction);
         self::assertEquals($expected, $p->getCubeState());
@@ -43,9 +47,12 @@ class CubeProcessorTest extends TestCase
      */
     public function testRotateException(): void
     {
-        $p = new CubeProcessor(null);
+        $p = new CubeProcessor();
         $this->expectException(NullCubeStateException::class);
-        $p->rotate('ololo', 'ololo');
+        $p->rotate(
+            Faces::fromValue(Faces::getRandomValue()),
+            Directions::fromValue(Directions::getRandomValue())
+        );
     }
 
     /**
@@ -56,7 +63,7 @@ class CubeProcessorTest extends TestCase
      */
     public function testShuffle($expected): void
     {
-        $p = new CubeProcessor(null);
+        $p = new CubeProcessor();
         $p->init();
         $p->shuffle();
         self::assertNotEquals($expected, $p->getCubeState());
@@ -68,11 +75,14 @@ class CubeProcessorTest extends TestCase
      */
     public function testShuffleException(): void
     {
-        $p = new CubeProcessor(null);
+        $p = new CubeProcessor();
         $this->expectException(NullCubeStateException::class);
         $p->shuffle();
     }
 
+    /**
+     * @return array[]
+     */
     public function getDataForInit(): array
     {
         return [
@@ -82,12 +92,15 @@ class CubeProcessorTest extends TestCase
         ];
     }
 
+    /**
+     * @return array[]
+     */
     public function getDataForRotate(): array
     {
         return [
             [
-                Cube::FACE_FRONT,
-                CubeProcessor::DIRECTION_CCW,
+                Faces::fromValue(Faces::FACE_FRONT),
+                Directions::fromValue(Directions::DIRECTION_CCW),
                 [
                     "top" => [
                         [
@@ -194,8 +207,8 @@ class CubeProcessorTest extends TestCase
                 ]
             ],
             [
-                Cube::FACE_FRONT,
-                CubeProcessor::DIRECTION_CW,
+                Faces::fromValue(Faces::FACE_FRONT),
+                Directions::fromValue(Directions::DIRECTION_CW),
                 [
                     "top" => [
                         [

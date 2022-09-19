@@ -2,68 +2,62 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\NullCubeStateException;
+use App\Enums\Faces;
+use App\Enums\Directions;
+use App\Managers\CubeManager;
 use App\Models\Cube;
-use App\Processor\CubeProcessor;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\Cube as CubeResourse;
 
 class CubeController
 {
+    public function __construct(protected CubeManager $cubeManager)
+    {
+    }
+
     /**
      * @return JsonResource
      */
     public function create(): JsonResource
     {
-        /** @var Cube $cube */
-        $cube = Cube::firstOrNew();
-
-        $cubeProcessor = new CubeProcessor($cube->state);
-
-        $cubeProcessor->init();
-
-        $cube->state = $cubeProcessor->getCubeState();
-        $cube->save();
-
-        return new JsonResource($cube);
+        return new CubeResourse($this->cubeManager->create());
     }
 
     /**
+     * @param Cube $cube
      * @return JsonResource
-     * @throws NullCubeStateException
      */
-    public function shuffle(): JsonResource
+    public function get(Cube $cube): JsonResource
     {
-        /** @var Cube $cube */
-        $cube = Cube::firstOrFail();
-
-        $cubeProcessor = new CubeProcessor($cube->state);
-
-        $cubeProcessor->shuffle();
-
-        $cube->state = $cubeProcessor->getCubeState();
-        $cube->save();
-
-        return new JsonResource($cube);
+        return new CubeResourse($cube);
     }
 
     /**
-     * @param string $face
-     * @param string $direction
+     * @param Cube $cube
      * @return JsonResource
-     * @throws NullCubeStateException
      */
-    public function rotate(string $face, string $direction): JsonResource
+    public function init(Cube $cube): JsonResource
     {
-        /** @var Cube $cube */
-        $cube = Cube::firstOrFail();
+        return new CubeResourse($this->cubeManager->init($cube));
+    }
 
-        $cubeProcessor = new CubeProcessor($cube->state);
+    /**
+     * @param Cube $cube
+     * @return JsonResource
+     */
+    public function shuffle(Cube $cube): JsonResource
+    {
+        return new CubeResourse($this->cubeManager->shuffle($cube));
+    }
 
-        $cubeProcessor->rotate($face, $direction);
-
-        $cube->state = $cubeProcessor->getCubeState();
-        $cube->save();
-
-        return new JsonResource($cube);
+    /**
+     * @param Cube $cube
+     * @param Faces $face
+     * @param Directions $direction
+     * @return JsonResource
+     */
+    public function rotate(Cube $cube, Faces $face, Directions $direction): JsonResource
+    {
+        return new CubeResourse($this->cubeManager->rotate($cube, $face, $direction));
     }
 }

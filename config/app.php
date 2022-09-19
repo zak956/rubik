@@ -195,6 +195,10 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        /*
+         * Cube Service Provider
+         */
+        App\Providers\CubeServiceProvider::class,
     ],
 
     /*

@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\CubeController;
 use App\Models\Cube;
-use App\Processor\CubeProcessor;
+use App\Processors\CubeProcessor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Route;
 
@@ -17,13 +17,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function (): JsonResponse {
-    return new JsonResponse(['health' => 'OK']);
+Route::get('/', function () {
+    return view('welcome');
 });
-
-Route::get('/create', [CubeController::class, 'create']);
-Route::get('/shuffle', [CubeController::class, 'shuffle']);
-Route::get('/rotate/{face}/{direction}', [CubeController::class, 'rotate'])
-    ->whereIn('face', Cube::FACES)
-    ->whereIn('direction', [CubeProcessor::DIRECTION_CW, CubeProcessor::DIRECTION_CCW])
-;
